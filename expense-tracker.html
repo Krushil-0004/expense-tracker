@@ -1,0 +1,474 @@
+None selected 
+
+Skip to content
+Using Gmail with screen readers
+in:sent 
+Enable desktop notifications for Gmail.
+   OK  No thanks
+Conversations
+0% of 5,120 GB used
+Terms · Privacy · Program Policies
+Last account activity: 1 minute ago
+Open in 1 other location · Details
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Expense Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #FAFAF7;
+    --surface: #FFFFFF;
+    --border: #E8E6E0;
+    --text: #1A1A1A;
+    --muted: #6B6B6B;
+    --accent: #0F766E;
+    --accent-hover: #0B5952;
+    --danger: #B91C1C;
+    --food: #F59E0B;
+    --rent: #0F766E;
+    --entertainment: #7C3AED;
+    --transport: #2563EB;
+    --shopping: #DB2777;
+    --other: #6B7280;
+  }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 24px;
+    line-height: 1.5;
+  }
+
+  .container { max-width: 1200px; margin: 0 auto; }
+
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 32px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  h1 { font-size: 24px; font-weight: 600; letter-spacing: -0.02em; }
+  .subtitle { color: var(--muted); font-size: 14px; margin-top: 4px; }
+
+  .total {
+    text-align: right;
+  }
+  .total-label {
+    font-size: 12px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 4px;
+  }
+  .total-amount {
+    font-size: 32px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--accent);
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1.4fr;
+    gap: 24px;
+  }
+  @media (max-width: 860px) {
+    .grid { grid-template-columns: 1fr; }
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+  }
+
+  .card h2 {
+    font-size: 14px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    margin-bottom: 20px;
+  }
+
+  form { display: flex; flex-direction: column; gap: 14px; }
+
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  label { font-size: 13px; font-weight: 500; color: var(--text); }
+  input, select {
+    font-family: inherit;
+    font-size: 14px;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--bg);
+    color: var(--text);
+    transition: border-color 0.15s, background 0.15s;
+  }
+  input:focus, select:focus {
+    outline: none;
+    border-color: var(--accent);
+    background: var(--surface);
+  }
+
+  button.primary {
+    background: var(--accent);
+    color: white;
+    border: none;
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    margin-top: 4px;
+    transition: background 0.15s;
+  }
+  button.primary:hover { background: var(--accent-hover); }
+
+  .chart-wrap {
+    position: relative;
+    height: 280px;
+    margin-bottom: 20px;
+  }
+
+  .empty {
+    text-align: center;
+    color: var(--muted);
+    padding: 60px 20px;
+    font-size: 14px;
+  }
+
+  .list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 320px;
+    overflow-y: auto;
+  }
+  .list-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px;
+    background: var(--bg);
+    border-radius: 8px;
+    border: 1px solid transparent;
+    transition: border-color 0.15s;
+  }
+  .list-item:hover { border-color: var(--border); }
+
+  .item-left { display: flex; align-items: center; gap: 12px; min-width: 0; }
+  .dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .item-details { min-width: 0; }
+  .item-title {
+    font-size: 14px;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .item-meta {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+
+  .item-right { display: flex; align-items: center; gap: 12px; }
+  .item-amount { font-weight: 600; font-size: 14px; }
+  .delete-btn {
+    background: transparent;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-family: inherit;
+    transition: color 0.15s, background 0.15s;
+  }
+  .delete-btn:hover { color: var(--danger); background: #FEE2E2; }
+
+  .list::-webkit-scrollbar { width: 6px; }
+  .list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <div>
+      <h1>Expense Tracker</h1>
+      <div class="subtitle">Track spending and visualize where your money goes</div>
+    </div>
+    <div class="total">
+      <div class="total-label">Total Spent</div>
+      <div class="total-amount" id="totalAmount">₹0</div>
+    </div>
+  </header>
+
+  <div class="grid">
+
+    <!-- LEFT: Add expense form -->
+    <div class="card">
+      <h2>Add Expense</h2>
+      <form id="expenseForm">
+        <div class="field">
+          <label for="amount">Amount (₹)</label>
+          <input type="number" id="amount" min="1" step="0.01" required placeholder="0.00" />
+        </div>
+        <div class="field">
+          <label for="category">Category</label>
+          <select id="category" required>
+            <option value="Food">Food</option>
+            <option value="Rent">Rent</option>
+            <option value="Entertainment">Entertainment</option>
+            <option value="Transport">Transport</option>
+            <option value="Shopping">Shopping</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="description">Description</label>
+          <input type="text" id="description" required placeholder="e.g. Lunch at canteen" maxlength="60" />
+        </div>
+        <div class="field">
+          <label for="date">Date</label>
+          <input type="date" id="date" required />
+        </div>
+        <button type="submit" class="primary">Add Expense</button>
+      </form>
+    </div>
+
+    <!-- RIGHT: Chart + list -->
+    <div class="card">
+      <h2>Category Breakdown</h2>
+      <div class="chart-wrap">
+        <canvas id="pieChart"></canvas>
+        <div class="empty" id="chartEmpty">No expenses yet. Add one to see your breakdown.</div>
+      </div>
+
+      <h2 style="margin-top: 24px;">Recent Expenses</h2>
+      <ul class="list" id="expenseList"></ul>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  // ---------- Category color map ----------
+  const CATEGORY_COLORS = {
+    Food: '#F59E0B',
+    Rent: '#0F766E',
+    Entertainment: '#7C3AED',
+    Transport: '#2563EB',
+    Shopping: '#DB2777',
+    Other: '#6B7280'
+  };
+
+  // ---------- State ----------
+  let expenses = loadExpenses();
+  let chart = null;
+
+  // ---------- DOM ----------
+  const form = document.getElementById('expenseForm');
+  const amountEl = document.getElementById('amount');
+  const categoryEl = document.getElementById('category');
+  const descEl = document.getElementById('description');
+  const dateEl = document.getElementById('date');
+  const totalEl = document.getElementById('totalAmount');
+  const listEl = document.getElementById('expenseList');
+  const chartEmptyEl = document.getElementById('chartEmpty');
+  const canvas = document.getElementById('pieChart');
+
+  // Default date to today
+  dateEl.valueAsDate = new Date();
+
+  // ---------- Storage ----------
+  function loadExpenses() {
+    try {
+      const raw = localStorage.getItem('expenses');
+      return raw ? JSON.parse(raw) : [];
+    } catch { return []; }
+  }
+  function saveExpenses() {
+    localStorage.setItem('expenses', JSON.stringify(expenses));
+  }
+
+  // ---------- Form submit ----------
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const expense = {
+      id: Date.now(),
+      amount: parseFloat(amountEl.value),
+      category: categoryEl.value,
+      description: descEl.value.trim(),
+      date: dateEl.value
+    };
+    expenses.push(expense);
+    saveExpenses();
+    render();
+    form.reset();
+    dateEl.valueAsDate = new Date();
+    amountEl.focus();
+  });
+
+  // ---------- Delete ----------
+  function deleteExpense(id) {
+    expenses = expenses.filter(e => e.id !== id);
+    saveExpenses();
+    render();
+  }
+
+  // ---------- Render everything ----------
+  function render() {
+    renderTotal();
+    renderList();
+    renderChart();
+  }
+
+  function renderTotal() {
+    const total = expenses.reduce((sum, e) => sum + e.amount, 0);
+    totalEl.textContent = '₹' + total.toLocaleString('en-IN', { maximumFractionDigits: 2 });
+  }
+
+  function renderList() {
+    listEl.innerHTML = '';
+    if (expenses.length === 0) {
+      listEl.innerHTML = '<div class="empty" style="padding: 20px;">No expenses added yet.</div>';
+      return;
+    }
+    // Show most recent first
+    const sorted = [...expenses].sort((a, b) => b.id - a.id);
+    for (const e of sorted) {
+      const li = document.createElement('li');
+      li.className = 'list-item';
+      li.innerHTML = `
+        <div class="item-left">
+          <span class="dot" style="background: ${CATEGORY_COLORS[e.category]}"></span>
+          <div class="item-details">
+            <div class="item-title">${escapeHtml(e.description)}</div>
+            <div class="item-meta">${e.category} · ${formatDate(e.date)}</div>
+          </div>
+        </div>
+        <div class="item-right">
+          <span class="item-amount">₹${e.amount.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</span>
+          <button class="delete-btn" data-id="${e.id}">Delete</button>
+        </div>
+      `;
+      listEl.appendChild(li);
+    }
+    listEl.querySelectorAll('.delete-btn').forEach(btn => {
+      btn.addEventListener('click', () => deleteExpense(parseInt(btn.dataset.id)));
+    });
+  }
+
+  function renderChart() {
+    // Aggregate by category
+    const totals = {};
+    for (const e of expenses) {
+      totals[e.category] = (totals[e.category] || 0) + e.amount;
+    }
+    const labels = Object.keys(totals);
+    const data = labels.map(l => totals[l]);
+    const colors = labels.map(l => CATEGORY_COLORS[l]);
+
+    if (labels.length === 0) {
+      chartEmptyEl.style.display = 'block';
+      canvas.style.display = 'none';
+      if (chart) { chart.destroy(); chart = null; }
+      return;
+    }
+
+    chartEmptyEl.style.display = 'none';
+    canvas.style.display = 'block';
+
+    if (chart) {
+      chart.data.labels = labels;
+      chart.data.datasets[0].data = data;
+      chart.data.datasets[0].backgroundColor = colors;
+      chart.update();
+      return;
+    }
+
+    chart = new Chart(canvas, {
+      type: 'pie',
+      data: {
+        labels,
+        datasets: [{
+          data,
+          backgroundColor: colors,
+          borderColor: '#FFFFFF',
+          borderWidth: 2
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'right',
+            labels: {
+              font: { family: 'Inter', size: 13 },
+              padding: 12,
+              boxWidth: 12,
+              boxHeight: 12,
+              usePointStyle: true,
+              pointStyle: 'circle'
+            }
+          },
+          tooltip: {
+            callbacks: {
+              label: (ctx) => {
+                const value = ctx.parsed;
+                const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
+                const pct = ((value / total) * 100).toFixed(1);
+                return ` ${ctx.label}: ₹${value.toLocaleString('en-IN')} (${pct}%)`;
+              }
+            }
+          }
+        }
+      }
+    });
+  }
+
+  // ---------- Helpers ----------
+  function escapeHtml(s) {
+    return s.replace(/[&<>"']/g, c => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[c]));
+  }
+  function formatDate(iso) {
+    const d = new Date(iso);
+    return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+  }
+
+  // Initial render
+  render();
+</script>
+</body>
+</html>
+expense-tracker.html
+Displaying expense-tracker.html.
